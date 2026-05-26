@@ -11,17 +11,26 @@ function App() {
   const audioRef = useRef(null)
   const currentAudioUrlRef = useRef(null)
   const currentCoverUrlRef = useRef(null)
+  const metadataRequestIdRef = useRef(0)
 
   async function handleFileSelect(file) {
     if (currentAudioUrlRef.current) URL.revokeObjectURL(currentAudioUrlRef.current)
     if (currentCoverUrlRef.current) URL.revokeObjectURL(currentCoverUrlRef.current)
 
     const nextAudioUrl = URL.createObjectURL(file)
+    const nextRequestId = metadataRequestIdRef.current + 1
+    metadataRequestIdRef.current = nextRequestId
+
     currentAudioUrlRef.current = nextAudioUrl
     setAudioUrl(nextAudioUrl)
     setFileName(file.name.replace(/\.[^/.]+$/, ""))
 
     const nextMetadata = await readMetadata(file)
+    if (metadataRequestIdRef.current !== nextRequestId) {
+      if (nextMetadata.coverUrl) URL.revokeObjectURL(nextMetadata.coverUrl)
+      return
+    }
+
     currentCoverUrlRef.current = nextMetadata.coverUrl
     setMetadata(nextMetadata)
   }
