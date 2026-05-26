@@ -3,6 +3,8 @@ import FileUpload from "./components/FileUpload"
 import SongInfo from "./components/SongInfo"
 import { readMetadata } from "./utils/readMetadata"
 import AudioPlayer from "./components/AudioPlayer"
+import Visualizer from "./components/Visualizer"
+import useAudioAnalyzer from "./hooks/useAudioAnalyzer"
 
 function App() {
   const [audioUrl, setAudioUrl] = useState(null)
@@ -13,6 +15,8 @@ function App() {
   const currentAudioUrlRef = useRef(null)
   const currentCoverUrlRef = useRef(null)
   const metadataRequestIdRef = useRef(0)
+  const analyzerData = useAudioAnalyzer(audioRef, audioUrl)
+
 
   async function handleFileSelect(file) {
     if (currentAudioUrlRef.current) URL.revokeObjectURL(currentAudioUrlRef.current)
@@ -56,6 +60,7 @@ function App() {
       <FileUpload onFileSelect={handleFileSelect} />
       <SongInfo fileName={fileName} metadata={metadata} />
       {audioUrl && <audio ref={audioRef} src={audioUrl} style={{ display: "none" }} />}
+      {audioUrl && <Visualizer analyzerData={analyzerData} />}
       <AudioPlayer audioRef={audioRef} audioUrl={audioUrl} />
     </main>
   )
