@@ -11,7 +11,7 @@ function SongInfo({ fileName, metadata }) {
         {coverUrl ? (
         <img className="cover-art" src={coverUrl} alt="Album cover" />
         ) : (
-           <div className="cover-art cover-art--fallback">No Cover</div>
+           <div className="cover-art">No Cover</div>
         )}
    
         <div className="song-details">
