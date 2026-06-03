@@ -5,6 +5,7 @@ import { readMetadata } from "./utils/readMetadata"
 import AudioPlayer from "./components/AudioPlayer"
 import Visualizer from "./components/Visualizer"
 import useAudioAnalyzer from "./hooks/useAudioAnalyzer"
+import CustomizerPanel from "./components/CustomizerPanel"
 
 function App() {
   const [audioUrl, setAudioUrl] = useState(null)
@@ -16,6 +17,13 @@ function App() {
   const metadataRequestIdRef = useRef(0)
   const analyzerData = useAudioAnalyzer(audioRef, audioUrl)
   const [vizMode, setVizMode] = useState("bars")
+  const [visualizerSettings, setVisualizerSettings] = useState({
+    intensity: 1,
+    hueShift: 0,
+    glow: 14,
+    barCount: 96,
+  })
+
 
   async function handleFileSelect(file) {
     if (currentAudioUrlRef.current) URL.revokeObjectURL(currentAudioUrlRef.current)
@@ -65,7 +73,19 @@ function App() {
       >
         Mode: {vizMode === "bars" ? "Bars" : "Radial"}
       </button>
-      {audioUrl && <Visualizer analyzerData={analyzerData} mode={vizMode} />}
+
+      <CustomizerPanel
+        settings={visualizerSettings}
+        onChange={setVisualizerSettings}
+      />
+
+      {audioUrl && (
+        <Visualizer
+          analyzerData={analyzerData}
+          mode={vizMode}
+          settings={visualizerSettings}
+        />
+      )}
       <AudioPlayer audioRef={audioRef} audioUrl={audioUrl} />
     </main>
   )
