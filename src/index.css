@@ -114,10 +114,106 @@ body {
   color: #ddd;
 }
 
+.customizer small {
+  color: #9a9a9a;
+  font-size: 12px;
+  letter-spacing: 0.03em;
+}
+
+.customizer select,
+.customizer input[type="color"] {
+  width: 100%;
+  min-height: 36px;
+  padding: 6px 8px;
+  border: 1px solid #3d3d3d;
+  border-radius: 8px;
+  background: #1a1a1a;
+  color: #f1f1f1;
+}
+
 .customizer input:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+.customizer-toggle {
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+   gap: 10px;
+ }
+
+ .customizer-toggle input[type="checkbox"] {
+   width: 18px;
+   height: 18px;
+   accent-color: #7c4dff;
+ }
+
+
+ .palette-editor {
+   display: grid;
+   gap: 8px;
+ }
+ 
+ .palette-row {
+   display: grid;
+   grid-template-columns: auto 1fr auto;
+   gap: 8px;
+   align-items: center;
+ }
+ 
+ .palette-row button,
+ .palette-editor > button {
+   min-height: 32px;
+   padding: 6px 10px;
+   border: 1px solid #444;
+   border-radius: 8px;
+   background: #1a1a1a;
+   color: #f1f1f1;
+   cursor: pointer;
+ }
+ 
+ .palette-row button:disabled,
+ .palette-editor > button:disabled {
+   opacity: 0.5;
+   cursor: not-allowed;
+ }
+
+  .palette-editor {
+   display: grid;
+   gap: 10px;
+ }
+ 
+ .palette-row {
+   display: grid;
+   grid-template-columns: auto 1fr auto;
+   gap: 10px;
+   align-items: center;
+ }
+ 
+ .palette-position {
+   display: grid;
+   gap: 4px;
+ }
+ 
+ .palette-row button,
+ .palette-editor > button {
+   min-height: 32px;
+   padding: 6px 10px;
+   border: 1px solid #444;
+   border-radius: 8px;
+   background: #1a1a1a;
+   color: #f1f1f1;
+   cursor: pointer;
+ }
+ 
+ .palette-row button:disabled,
+ .palette-editor > button:disabled {
+   opacity: 0.5;
+   cursor: not-allowed;
+ }
+
+
 
 .player {
   margin-top: 16px;
@@ -149,4 +245,3 @@ body {
     align-items: stretch;
   }
 }
-

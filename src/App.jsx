@@ -24,11 +24,21 @@ function App() {
   const [vizMode, setVizMode] = useState("bars")
   // Controls consumed by the visualizer + customizer panel.
   const [visualizerSettings, setVisualizerSettings] = useState({
-    intensity: 1,
-    hueShift: 0,
-    glow: 14,
-    barCount: 96,
-  })
+   intensity: 1,
+   hueShift: 0,
+   glow: 14,
+   barCount: 96,
+   colorMode: "rainbow",
+   singleColor: "#7c4dff",
+   paletteColors: [
+    { id: "stop-1", color: "#7c4dff", position: 0 },
+    { id: "stop-2", color: "#00d4ff", position: 50 },
+    { id: "stop-3", color: "#ff4da6", position: 100 },
+   ], // User-editable gradient stops
+   autoCycle: false,
+   cycleSpeed: 45,
+ })
+
   const hasAudio = Boolean(audioUrl)
 
   async function handleFileSelect(file) {
