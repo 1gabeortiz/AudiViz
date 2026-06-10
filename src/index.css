@@ -406,6 +406,21 @@ body {
   color: #d7d7d7;
 }
 
+.player-btn--icon {
+  min-width: 44px;
+  padding: 8px 10px;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.player-shortcuts {
+  grid-column: 1 / -1;
+  font-size: 12px;
+  color: #9a9a9a;
+  margin-top: -4px;
+}
+
+
 .empty-state {
   margin-top: 12px;
   color: #bdbdbd;
@@ -434,6 +449,14 @@ body {
   }
 }
 
+.player-seek:focus-visible,
+  .player-volume input[type="range"]:focus-visible {
+    outline: 2px solid #7c4dff;
+    outline-offset: 2px;
+    border-radius: 8px;
+  }
+
+
 .reset-ui-btn {
   margin-top: 10px;
   padding: 8px 12px;
@@ -448,4 +471,6 @@ body {
   border-color: #7a2b2b;
   background: #341414;
 }
+
+
 
