@@ -12,6 +12,37 @@ function AudioPlayer({ audioRef, audioUrl }) {
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const [volume, setVolume] = useState(1)
+  const SEEK_SECONDS = 5
+  const VOLUME_STEP = 0.05
+  function isTypingInInput(target) {
+    if (!(target instanceof HTMLElement)) return false
+    if (target.isContentEditable) return true
+    const tag = target.tagName
+    if (tag === "TEXTAREA" || tag === "SELECT") return true
+    if (tag === "INPUT") {
+      const type = (target.getAttribute("type") || "text").toLowerCase()
+      // Allow shortcuts when sliders/ranges are focused.
+      if (type === "range") return false
+      // Block shortcuts for text-like fields only.
+      const textLikeTypes = new Set([
+        "text",
+        "search",
+        "email",
+        "password",
+        "url",
+        "tel",
+        "number",
+        "date",
+        "datetime-local",
+        "month",
+        "week",
+        "time",
+      ])
+      return textLikeTypes.has(type)
+    }
+    return false
+  }
+
 
   useEffect(() => {
     const audio = audioRef.current
@@ -52,6 +83,61 @@ function AudioPlayer({ audioRef, audioUrl }) {
       audio.removeEventListener("pause", onPause)
     }
   }, [audioRef, audioUrl])
+
+  useEffect(() => {
+    if (!audioUrl) return
+    function onKeyDown(e) {
+      if (isTypingInInput(e.target)) return
+      const audio = audioRef.current
+      if (!audio) return
+      switch (e.code) {
+        case "Space":
+          e.preventDefault()
+          if (audio.paused) {
+            audio.play().catch(() => {
+              setIsPlaying(false)
+            })
+          } else {
+            audio.pause()
+          }
+          break
+        case "ArrowRight":
+          e.preventDefault()
+          audio.currentTime = Math.min(
+            Number.isFinite(audio.duration) ? audio.duration : 
+            audio.currentTime + SEEK_SECONDS,
+            audio.currentTime + SEEK_SECONDS
+          )
+          setCurrentTime(audio.currentTime)
+          break
+        case "ArrowLeft":
+          e.preventDefault()
+          audio.currentTime = Math.max(0, audio.currentTime - SEEK_SECONDS)
+          setCurrentTime(audio.currentTime)
+          break
+        case "ArrowUp":
+          e.preventDefault()
+          audio.volume = Math.min(1, audio.volume + VOLUME_STEP)
+          setVolume(audio.volume)
+          break
+        case "ArrowDown":
+          e.preventDefault()
+          audio.volume = Math.max(0, audio.volume - VOLUME_STEP)
+          setVolume(audio.volume)
+          break
+        case "KeyM":
+          e.preventDefault()
+          audio.muted = !audio.muted
+          break
+        default:
+          break
+      }
+    }
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+  }, [audioRef, audioUrl])
+
+
 
   function togglePlay() {
     const audio = audioRef.current
@@ -103,20 +189,35 @@ function AudioPlayer({ audioRef, audioUrl }) {
   return (
     <section className="player">
       <div className="player-controls">
-        <button className="player-btn" type="button" onClick={restartTrack}>
-          Restart
-        </button>
-        <button
-          className={`player-btn player-btn--primary ${isPlaying ? "player-btn--active" : ""}`}
-          type="button"
-          onClick={togglePlay}
-        >
-          {isPlaying ? "Pause" : "Play"}
-        </button>
-        <button className="player-btn" type="button" onClick={skipToEnd}>
-          Skip to End
-        </button>
-      </div>
+    <button
+      className="player-btn player-btn--icon"
+      type="button"
+      onClick={restartTrack}
+      aria-label="Restart track"
+      title="Restart"
+    >
+      ⏮
+    </button>
+    <button
+      className={`player-btn player-btn--primary player-btn--icon ${isPlaying 
+  ? "player-btn--active" : ""}`}
+      type="button"
+      onClick={togglePlay}
+      aria-label={isPlaying ? "Pause" : "Play"}
+      title={isPlaying ? "Pause (Space)" : "Play (Space)"}
+    >
+      {isPlaying ? "⏸" : "▶"}
+    </button>
+    <button
+      className="player-btn player-btn--icon"
+      type="button"
+      onClick={skipToEnd}
+      aria-label="Skip to end"
+      title="Skip to end"
+    >
+      ⏭
+    </button>
+  </div>
 
       <span className="player-time">{formatTime(currentTime)}</span>
       <input
@@ -141,6 +242,10 @@ function AudioPlayer({ audioRef, audioUrl }) {
           onChange={handleVolume}
         />
       </label>
+      <p className="player-shortcuts">
+        Shortcuts: Space play/pause, ←/→ seek, ↑/↓ volume, M mute
+      </p>
+
     </section>
   )
 }
