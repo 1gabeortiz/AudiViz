@@ -102,12 +102,25 @@ function AudioPlayer({ audioRef, audioUrl }) {
 
   return (
     <section className="player">
-      <button onClick={restartTrack}>Restart</button>
-      <button onClick={togglePlay}>{isPlaying ? "Pause" : "Play"}</button>
-      <button onClick={skipToEnd}>Skip to End</button>
+      <div className="player-controls">
+        <button className="player-btn" type="button" onClick={restartTrack}>
+          Restart
+        </button>
+        <button
+          className={`player-btn player-btn--primary ${isPlaying ? "player-btn--active" : ""}`}
+          type="button"
+          onClick={togglePlay}
+        >
+          {isPlaying ? "Pause" : "Play"}
+        </button>
+        <button className="player-btn" type="button" onClick={skipToEnd}>
+          Skip to End
+        </button>
+      </div>
 
-      <span>{formatTime(currentTime)}</span>
+      <span className="player-time">{formatTime(currentTime)}</span>
       <input
+        className="player-seek"
         type="range"
         min="0"
         max={duration || 0}
@@ -115,9 +128,9 @@ function AudioPlayer({ audioRef, audioUrl }) {
         value={currentTime}
         onChange={handleSeek}
       />
-      <span>{formatTime(duration)}</span>
+      <span className="player-time">{formatTime(duration)}</span>
 
-      <label>
+      <label className="player-volume">
         Vol
         <input
           type="range"
