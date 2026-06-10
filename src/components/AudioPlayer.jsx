@@ -30,14 +30,26 @@ function AudioPlayer({ audioRef, audioUrl }) {
       setIsPlaying(false)
     }
 
+    function onPlay() {
+      setIsPlaying(true)
+    }
+
+    function onPause() {
+      setIsPlaying(false)
+    }
+
     audio.addEventListener("timeupdate", onTimeUpdate)
     audio.addEventListener("loadedmetadata", onLoadedMetadata)
     audio.addEventListener("ended", onEnded)
+    audio.addEventListener("play", onPlay)
+    audio.addEventListener("pause", onPause)
 
     return () => {
       audio.removeEventListener("timeupdate", onTimeUpdate)
       audio.removeEventListener("loadedmetadata", onLoadedMetadata)
       audio.removeEventListener("ended", onEnded)
+      audio.removeEventListener("play", onPlay)
+      audio.removeEventListener("pause", onPause)
     }
   }, [audioRef, audioUrl])
 
@@ -47,11 +59,11 @@ function AudioPlayer({ audioRef, audioUrl }) {
 
     // The hidden <audio> element is the source of truth for playback state.
     if (audio.paused) {
-      audio.play()
-      setIsPlaying(true)
+      audio.play().catch(() => {
+        setIsPlaying(false)
+      })
     } else {
       audio.pause()
-      setIsPlaying(false)
     }
   }
 

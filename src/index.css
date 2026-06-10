@@ -25,6 +25,12 @@ body {
   color: #fff;
 }
 
+.upload-error {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #ff9a9a;
+}
+
 .app {
   max-width: 760px;
   margin: 32px auto;
@@ -288,6 +294,12 @@ body {
 .preset-io {
   display: flex;
   gap: 8px;
+}
+
+.preset-io-message {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #a7e2b4;
 }
 
 .presets-section button {
