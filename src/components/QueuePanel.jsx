@@ -67,6 +67,7 @@ function QueuePanel({
               <div className="queue-item-main">
                 <span className="queue-index">{index + 1}.</span>
                 <div className="queue-track-text">
+                  {isActive && <p className="queue-now-playing-tag">Now Playing</p>}
                   <p className="queue-track-title">{title}</p>
                   {subtitle && <p className="queue-track-subtitle">{subtitle}</p>}
                 </div>

@@ -512,6 +512,18 @@ body {
   border-color: #00d4ff;
 }
 
+.player-repeat-btn {
+  min-width: 56px;
+  font-size: 16px;
+  letter-spacing: 0.02em;
+}
+.player-repeat-btn.player-btn--active {
+  border-color: #00d4ff;
+  color: #00d4ff;
+}
+
+
+
 .player-seek,
 .player-volume input[type="range"] {
   width: 100%;
@@ -538,6 +550,17 @@ body {
   padding: 8px 10px;
   font-size: 18px;
   line-height: 1;
+}
+
+.player-shuffle-btn {
+  min-width: 48px;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.player-shuffle-btn.player-btn--active {
+  border-color: #00d4ff;
+  color: #00d4ff;
 }
 
 .player-shortcuts {
@@ -597,6 +620,49 @@ body {
 .reset-ui-btn:hover {
   border-color: #7a2b2b;
   background: #341414;
+}
+
+.now-playing-panel {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid #2f2f2f;
+  border-radius: 10px;
+  background: #141414;
+  display: grid;
+  gap: 6px;
+}
+.now-playing-line {
+  font-size: 14px;
+  color: #d9d9d9;
+}
+.now-playing-label {
+  color: #9a9a9a;
+  font-weight: 600;
+}
+.playback-mode-chips {
+  margin-top: 4px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.mode-chip {
+  font-size: 12px;
+  color: #b8b8b8;
+  border: 1px solid #3a3a3a;
+  border-radius: 999px;
+  padding: 3px 9px;
+  background: #1a1a1a;
+}
+.mode-chip--active {
+  color: #00d4ff;
+  border-color: #00d4ff66;
+}
+.queue-now-playing-tag {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #00d4ff;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 

@@ -18,6 +18,7 @@ const VISUALIZER_SETTINGS_STORAGE_KEY = "audio-viz-current-settings"
 const VISUALIZER_MODE_STORAGE_KEY = "audio-viz-mode"
 const LAST_SONG_NAME_STORAGE_KEY = "audio-viz-last-song-name"
 
+
 function loadInitialVisualizerMode() {
   try {
     const savedMode = localStorage.getItem(VISUALIZER_MODE_STORAGE_KEY)
@@ -100,13 +101,29 @@ function App() {
   const activeTrack = queue.find((track) => track.id === activeTrackId) || null
   const activeAudioUrl = activeTrack?.audioUrl || null
   const analyzerData = useAudioAnalyzer(audioRef, activeAudioUrl)
+
   const [vizMode, setVizMode] = useState(loadInitialVisualizerMode)
   const [visualizerSettings, setVisualizerSettings] = useState(loadInitialVisualizerSettings)
+  const [repeatMode, setRepeatMode] = useState("off") 
+  const [isShuffleOn, setIsShuffleOn] = useState(false)
 
   const hasAudio = Boolean(activeTrack)
   const hasPreviousTrack = Boolean(getPreviousTrackId(queue, activeTrackId))
   const hasNextTrack = Boolean(getNextTrackId(queue, activeTrackId))
   const isLoadingMetadata = activeTrack?.status === "loading"
+
+  const [queueStatus, setQueueStatus] = useState(null) // { id, text } | null
+  const queueStatusTimerRef = useRef(null)
+
+  const upNextTrack = (() => {
+    if (!activeTrack) return null
+    if (repeatMode === "one") return activeTrack
+    if (isShuffleOn) return { name: "Random (Shuffle)" }
+    const nextId = getNextTrackId(queue, activeTrack.id)
+    if (nextId) return queue.find((track) => track.id === nextId) || null
+    if (repeatMode === "all" && queue.length > 0) return queue[0]
+    return null
+  })()
 
   function handleResetSavedUi() {
     const confirmed = window.confirm(
@@ -131,10 +148,7 @@ function App() {
   }
 
   function playNextTrack() {
-    setActiveTrackId((previousId) => {
-      const nextTrackId = getNextTrackId(queue, previousId)
-      return nextTrackId ?? previousId
-    })
+    setActiveTrackId((previousId) => getNextTrackIdByMode(queue, previousId))
   }
 
   function playPreviousTrack() {
@@ -142,6 +156,29 @@ function App() {
       const previousTrackId = getPreviousTrackId(queue, previousId)
       return previousTrackId ?? previousId
     })
+  }
+  
+  function getRandomTrackId(tracks, excludeTrackId) {
+    const candidates = tracks.filter((track) => track.id !== excludeTrackId)
+    if (!candidates.length) return excludeTrackId
+    const index = Math.floor(Math.random() * candidates.length)
+    return candidates[index].id
+  }
+
+  function getNextTrackIdByMode(tracks, currentId) {
+    if (!tracks.length) return currentId
+    if (isShuffleOn) {
+      return getRandomTrackId(tracks, currentId)
+    }
+    const nextTrackId = getNextTrackId(tracks, currentId)
+    if (!nextTrackId && repeatMode === "all") {
+      return tracks[0].id
+    }
+    return nextTrackId ?? currentId
+  }
+
+  function getFileFingerprint(file) {
+    return `${file.name}__${file.size}__${file.lastModified}`
   }
 
   function handleRemoveTrack(trackId) {
@@ -190,12 +227,50 @@ function App() {
 
   function enqueueFiles(files) {
     if (!files.length) return
-    const tracks = files.map(createTrack)
+    const existingFingerprints = new Set(
+      queue.map((track) => getFileFingerprint(track.file))
+    )
+    const duplicateFiles = files.filter((file) =>
+      existingFingerprints.has(getFileFingerprint(file))
+    )
+    let filesToAdd = files
+    if (duplicateFiles.length) {
+      const duplicateNames = [...new Set(duplicateFiles.map((file) => file.name))]
+      const preview = duplicateNames.slice(0, 5).join("\n- ")
+      const extra =
+        duplicateNames.length > 5
+          ? `\n- ...and ${duplicateNames.length - 5} more`
+          : ""
+      const shouldAddDuplicates = window.confirm(
+        `These file(s) are already in the queue:\n- ${preview}${extra}\n\nAdd them anyway?`
+      )
+      if (!shouldAddDuplicates) {
+        filesToAdd = files.filter(
+          (file) => !existingFingerprints.has(getFileFingerprint(file))
+        )
+      }
+    }
+
+    const skippedCount = files.length - filesToAdd.length
+    if (!filesToAdd.length) {
+      if (skippedCount > 0) {
+        showQueueStatus("No new files added.")
+      }
+      return
+    }
+
+    if (!filesToAdd.length) return
+    const tracks = filesToAdd.map(createTrack)
+
+    if (skippedCount > 0) {
+      showQueueStatus(`Added ${tracks.length} file(s). Skipped ${skippedCount}.`)
+    } else {
+      showQueueStatus(`Added ${tracks.length} file(s) to queue.`)
+    }
 
     setQueue((previousQueue) => [...previousQueue, ...tracks])
     setActiveTrackId((previousTrackId) => previousTrackId ?? tracks[0].id)
     setLastSongName(tracks[tracks.length - 1].name)
-
     tracks.forEach((track) => {
       readMetadata(track.file)
         .then((nextMetadata) => {
@@ -205,7 +280,6 @@ function App() {
               if (nextMetadata?.coverUrl) URL.revokeObjectURL(nextMetadata.coverUrl)
               return previousQueue
             }
-
             const nextQueue = [...previousQueue]
             nextQueue[index] = {
               ...nextQueue[index],
@@ -232,6 +306,19 @@ function App() {
     })
   }
 
+  function showQueueStatus(text) {
+    if (queueStatusTimerRef.current) {
+      clearTimeout(queueStatusTimerRef.current)
+    }
+    // id forces re-render even if text is identical
+    setQueueStatus({ id: Date.now(), text })
+    queueStatusTimerRef.current = setTimeout(() => {
+      setQueueStatus(null)
+      queueStatusTimerRef.current = null
+    }, 2200)
+  }
+
+
   useEffect(() => {
     if (activeAudioUrl && audioRef.current) {
       audioRef.current.load()
@@ -242,17 +329,17 @@ function App() {
   useEffect(() => {
     const audio = audioRef.current
     if (!audio) return
-
     function onEnded() {
-      setActiveTrackId((previousTrackId) => {
-        const nextTrackId = getNextTrackId(queue, previousTrackId)
-        return nextTrackId ?? previousTrackId
-      })
+      if (repeatMode === "one") {
+        audio.currentTime = 0
+        audio.play()
+        return
+      }
+      setActiveTrackId((previousId) => getNextTrackIdByMode(queue, previousId))
     }
-
     audio.addEventListener("ended", onEnded)
     return () => audio.removeEventListener("ended", onEnded)
-  }, [queue])
+  }, [queue, repeatMode, isShuffleOn])
 
   useEffect(() => {
     queueRef.current = queue
@@ -306,12 +393,46 @@ function App() {
     }
   }, [lastSongName])
 
+  useEffect(() => {
+    return () => {
+      if (queueStatusTimerRef.current) {
+        clearTimeout(queueStatusTimerRef.current)
+      }
+    }
+  }, [])
+
+
 
   return (
     <main className="app">
       <h1>Audio Visualizer</h1>
       <FileUpload onFilesSelect={enqueueFiles} />
+      {queueStatus && (
+        <p key={queueStatus.id} className="upload-error" role="status" aria-live="polite">
+          {queueStatus.text}
+        </p>
+      )}
       <SongInfo fileName={activeTrack?.name || ""} metadata={activeTrack?.metadata} />
+      {activeTrack && (
+      <section className="now-playing-panel">
+          <p className="now-playing-line">
+            <span className="now-playing-label">Now Playing:</span>{" "}
+            {activeTrack.metadata?.title?.trim() || activeTrack.name}
+          </p>
+          <p className="now-playing-line">
+            <span className="now-playing-label">Up Next:</span>{" "}
+            {upNextTrack ? (upNextTrack.metadata?.title?.trim() || upNextTrack.name) : "None"}
+          </p>
+          <div className="playback-mode-chips">
+            <span className={`mode-chip ${isShuffleOn ? "mode-chip--active" : ""}`}>
+              Shuffle: {isShuffleOn ? "On" : "Off"}
+            </span>
+            <span className={`mode-chip ${repeatMode !== "off" ? "mode-chip--active" : ""}`}>
+              Repeat: {repeatMode === "off" ? "Off" : repeatMode === "one" ? "One" : "All"}
+            </span>
+          </div>
+        </section>
+      )}
 
       {isLoadingMetadata && (
       <p className="privacy-note">Reading metadata...</p>)}
@@ -377,6 +498,10 @@ function App() {
         hasNextTrack={hasNextTrack}
         onPreviousTrack={playPreviousTrack}
         onNextTrack={playNextTrack}
+        repeatMode={repeatMode}
+        onRepeatModeChange={setRepeatMode}
+        isShuffleOn={isShuffleOn}
+        onShuffleToggle={() => setIsShuffleOn((prev) => !prev)}
       />
     </main>
   )

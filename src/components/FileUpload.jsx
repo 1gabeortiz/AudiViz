@@ -1,13 +1,16 @@
-import { useRef, useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 const ACCEPTED_TYPES = ["audio/mpeg", "audio/wav"]
 const ACCEPTED_EXTENSIONS = [".mp3", ".wav"]
 const MAX_SIZE_MB = 150
+const STATUS_MESSAGE_MS = 2200
+
 
 function FileUpload({ onFilesSelect }) {
   const fileInputRef = useRef(null)
   const [isDraggingOver, setIsDraggingOver] = useState(false)
   const [statusMessage, setStatusMessage] = useState("")
+  const statusTimeoutRef = useRef(null)
 
   // Prevent browser from opening dropped files anywhere on the page
   useEffect(() => {
@@ -21,6 +24,16 @@ function FileUpload({ onFilesSelect }) {
       window.removeEventListener("drop", preventBrowserDefault)
     }
   }, [])
+
+  useEffect(() => {
+    return () => {
+      if (statusTimeoutRef.current) {
+        clearTimeout(statusTimeoutRef.current)
+      }
+    }
+  }, [])
+
+
 
   function isAcceptedAudioFile(file) {
     const lowerName = (file.name || "").toLowerCase()
@@ -39,6 +52,22 @@ function FileUpload({ onFilesSelect }) {
     return null
   }
 
+  function showStatusMessage(message) {
+    if (statusTimeoutRef.current) {
+      clearTimeout(statusTimeoutRef.current)
+    }
+    // Force a visible refresh even when message text is identical.
+    setStatusMessage("")
+    requestAnimationFrame(() => {
+      setStatusMessage(message)
+    })
+    statusTimeoutRef.current = setTimeout(() => {
+      setStatusMessage("")
+      statusTimeoutRef.current = null
+    }, STATUS_MESSAGE_MS)
+  }
+
+
   function collectAcceptedFiles(files) {
     const accepted = []
     const rejected = []
@@ -53,16 +82,8 @@ function FileUpload({ onFilesSelect }) {
     }
 
     if (!accepted.length && rejected.length) {
-      setStatusMessage(rejected[0])
+      showStatusMessage(rejected[0])
       return
-    }
-
-    if (accepted.length && rejected.length) {
-      setStatusMessage(`Added ${accepted.length} file(s). Skipped ${rejected.length}.`)
-    } else if (accepted.length) {
-      setStatusMessage(`Added ${accepted.length} file(s) to queue.`)
-    } else {
-      setStatusMessage("No supported audio files found.")
     }
 
     if (accepted.length) onFilesSelect(accepted)
