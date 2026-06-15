@@ -8,13 +8,17 @@ function formatTime(seconds) {
 }
 
 function AudioPlayer({
-  audioRef,
-  audioUrl,
-  onNextTrack,
-  onPreviousTrack,
-  hasNextTrack = false,
-  hasPreviousTrack = false,
-}) {
+    audioRef,
+    audioUrl,
+    onNextTrack,
+    onPreviousTrack,
+    hasNextTrack = false,
+    hasPreviousTrack = false,
+    repeatMode = "off",
+    onRepeatModeChange,
+    isShuffleOn = false,
+    onShuffleToggle,
+  }) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
@@ -201,6 +205,14 @@ function AudioPlayer({
     setIsPlaying(false)
   }
 
+  function cycleRepeatMode() {
+    if (!onRepeatModeChange) return
+    const order = ["off", "one", "all"]
+    const currentIndex = order.indexOf(repeatMode)
+    const nextMode = order[(currentIndex + 1) % order.length]
+    onRepeatModeChange(nextMode)
+  }
+
   if (!audioUrl) return null
 
   return (
@@ -223,6 +235,17 @@ function AudioPlayer({
           title={isPlaying ? "Pause (Space)" : "Play (Space)"}
         >
           {isPlaying ? "⏸" : "▶"}
+        </button>
+        <button
+          className={`player-btn player-btn--icon player-shuffle-btn ${
+            isShuffleOn ? "player-btn--active" : ""
+          }`}
+          type="button"
+          onClick={onShuffleToggle}
+          aria-label={`Shuffle ${isShuffleOn ? "on" : "off"}`}
+          title={isShuffleOn ? "Shuffle on" : "Shuffle off"}
+        >
+          ⇄
         </button>
         <button
           className="player-btn player-btn--icon"
@@ -253,6 +276,25 @@ function AudioPlayer({
         >
           ↷
         </button>
+        <button
+          className={`player-btn player-btn--icon player-repeat-btn ${
+            repeatMode !== "off" ? "player-btn--active" : ""
+          }`}
+          type="button"
+          onClick={cycleRepeatMode}
+          aria-label={`Repeat mode: ${repeatMode}`}
+          title={
+            repeatMode === "off"
+              ? "Repeat off"
+              : repeatMode === "one"
+                ? "Repeat one"
+                : "Repeat all"
+          }
+        >
+          {repeatMode === "one" ? "↻1" : "↻"}
+        </button>
+
+
       </div>
 
       <span className="player-time">{formatTime(currentTime)}</span>
