@@ -90,12 +90,6 @@ body {
   font-size: 15px;
 }
 
-.visualizer-canvas {
-  width: 100%;
-  height: clamp(260px, 42vh, 520px);
-  display: block;
-}
-
 .queue-header-actions {
   display: flex;
   align-items: center;
@@ -278,9 +272,9 @@ body {
   background: #111;
 }
 
- .visualizer-canvas {
+.visualizer-canvas {
   width: 100%;
-  height: clamp(280px, 44vh, 540px);
+  height: clamp(280px, 44vh, 560px);
   display: block;
 }
 
@@ -758,36 +752,12 @@ body {
   letter-spacing: 0.06em;
 }
 
-@media (min-width: 1200px) {
-  .visualizer-canvas {
-    height: clamp(340px, 50vh, 620px);
-  }
-  .queue-panel,
-  .customizer {
-    max-height: clamp(220px, 30vh, 420px);
-  }
-  }
-  @media (max-height: 760px) {
-  .visualizer-canvas {
-    height: clamp(240px, 38vh, 420px);
-  }
-  .queue-panel,
-  .customizer {
-    max-height: clamp(160px, 24vh, 280px);
-  }
-}
-
 @media (max-height: 760px), (max-width: 980px) {
   .app {
     gap: 10px;
   }
   .visualizer-canvas {
     height: clamp(200px, 34vh, 320px);
-  }
-  .queue-panel,
-  .customizer {
-    max-height: clamp(150px, 24vh, 240px);
-    overflow: auto;
   }
   .player {
     padding-top: 4px;
