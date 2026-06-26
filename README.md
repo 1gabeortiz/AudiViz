@@ -10,7 +10,7 @@ A browser-based music visualizer built with React, Vite, Canvas, and the Web Aud
 
 If you only want to try AudiViz, use the live demo link above (no local setup required).
 
-![AudiViz Main Demo](./audioviz.gif)
+![AudiViz Main Demo](https://github.com/1gabeortiz/AudiViz/blob/main/audioviz.gif)
 
 ## Table of Contents
 
